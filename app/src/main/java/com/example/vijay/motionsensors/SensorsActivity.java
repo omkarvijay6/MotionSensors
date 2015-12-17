@@ -14,16 +14,31 @@ import android.widget.TextView;
 public class SensorsActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager mSensorManager;
+
     private Sensor mAccelerometer;
+    private Sensor mGyroscope;
+    private Sensor mMagnetometer;
+
     private TextView accelerometer_sensor;
+    private TextView gyroscope_readings;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensors);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        // Get sensors
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+
+        // Register sensors gyro, accelerometer and magnetometer
         mSensorManager.registerListener(this, mAccelerometer , SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mGyroscope , SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mMagnetometer , SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -50,16 +65,44 @@ public class SensorsActivity extends AppCompatActivity implements SensorEventLis
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        float [] mGravity = new float [9];
+        float [] mGeomagnetic = new float [9];
+
+        accelerometer_sensor = (TextView) findViewById(R.id.accelerometer_sensor);
+        gyroscope_readings = (TextView) findViewById(R.id.gyroscope_readings);
+
         Sensor mySensor = event.sensor;
         if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
-                return;
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
-            accelerometer_sensor = (TextView) findViewById(R.id.accelerometer_sensor);
             String acc_readings = String.format("X: %s\nY: %s\nZ: %s", x, y, z);
             accelerometer_sensor.setText(String.valueOf(acc_readings));
+
+            mGravity = event.values.clone();
+        }
+
+        if (mySensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            mGeomagnetic = event.values.clone();
+            String gyro_readings = String.format("X: %s\nY: %s\nZ: %s", mGeomagnetic[0], mGeomagnetic[1], mGeomagnetic[2]);
+            gyroscope_readings.setText(String.valueOf(gyro_readings));
+        }
+
+        if(mGeomagnetic != null && mGravity != null ) {
+            float R[] = new float[9];
+            float I[] = new float[9];
+            boolean hasRotation = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
+
+            if(hasRotation) {
+                float orientation[] = new float[3];
+                SensorManager.getOrientation(R, orientation);
+                float x_gyro = orientation[0];
+                float y_gyro = orientation[1];
+                float z_gyro = orientation[2];
+                String gyro_readings = String.format("X: %s\nY: %s\nZ: %s", x_gyro, y_gyro, z_gyro);
+                gyroscope_readings.setText(String.valueOf(gyro_readings));
+            }
+
         }
 
     }
@@ -79,5 +122,7 @@ public class SensorsActivity extends AppCompatActivity implements SensorEventLis
     protected void onResume() {
         super.onResume();
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 }

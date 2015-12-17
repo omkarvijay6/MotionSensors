@@ -27,4 +27,21 @@
         android:textSize="20sp"/>
 
 
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textColorHighlight="@android:color/primary_text_dark"
+        android:capitalize="characters"
+        android:text="Gyroscope Readings:"
+        android:textSize="25sp"/>
+
+
+    <TextView
+        android:id="@+id/gyroscope_readings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textColorHighlight="@android:color/primary_text_dark"
+        android:textSize="20sp"/>
 </LinearLayout>
